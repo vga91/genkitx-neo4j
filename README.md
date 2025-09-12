@@ -1,3 +1,108 @@
+# MISSING STUFF
+
+
+## Retriever
+
+Missing stuff:
+- custom labels
+- distanceType
+- metadata prefix
+- Text property key 
+- Retrieval query
+- Metadata filter
+
+
+### custom labels
+The indexName is the label name, we cannot differentiate it
+We should add it here in here
+```
+await neo4j_instance.executeQuery(
+  `
+  UNWIND $data AS row
+  CREATE (t:\`${indexId}\`)
+  SET t.text = row.text,
+      t += row.metadata
+  WITH t, row.embedding AS embedding
+  CALL db.create.setNodeVectorProperty(t, 'embedding', embedding)
+  `,
+```
+and here
+```
+      await neo4j_instance.executeQuery(
+        `
+        CREATE VECTOR INDEX $indexName IF NOT EXISTS
+        FOR (n:\`${indexId}\`) ON n.embedding
+        `,
+        { indexName: indexId },
+        { database: neo4jConfig.database },
+      );
+```
+
+### Retrieval query
+- `https://github.com/neo4j-partners/genkitx-neo4j/issues/4`
+Change
+```
+const retriever_query = `
+  CALL db.index.vector.queryNodes($index, $k, $embedding) YIELD node, score
+  RETURN node.text AS text, node {.*, text: Null,
+  embedding: Null, id: Null } AS metadata
+  `;
+```
+
+
+### Metadata filter
+- `https://github.com/neo4j-partners/genkitx-neo4j/issues/3`
+- TODO: see here https://medium.com/neo4j/integrating-neo4j-with-langchain4j-for-graphrag-vector-stores-and-retrievers-de3ef3e08fa8
+
+TODO - is there a Filter stuff in genkit?
+https://gemini.google.com/app/134652c137a73c03?hl=it
+not sure...
+maybe put it in neo4jRetrieverRef args --> where: {...}
+---> TODO : check `chromaFun` in usage-examples.ts
+
+
+# Graph Construction
+
+TODO
+
+
+# Text2Cypher
+
+TODO
+
+# MCP
+
+TODO
+
+# Parent-child and other retrievers
+
+
+## LLMGraphTransformer
+TODO
+
+## Graph Converter 
+TODO
+
+## GraphRAG concepts
+TODO
+https://genkit.dev/docs/rag/
+
+
+## Chat memory
+TODO
+
+## Other changes
+
+- `https://github.com/neo4j-partners/genkitx-neo4j/issues/7`
+
+- `https://github.com/neo4j-partners/genkitx-neo4j/issues/5`
+
+
+---
+---
+---
+
+
 # genkitx-neo4j - Neo4j plugin for Genkit
 
 This is a Genkit Plugin for Neo4j.

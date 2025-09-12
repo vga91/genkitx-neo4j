@@ -53,6 +53,7 @@ If not specified, the default label will be `Neo4j - <indexId>`
 export const neo4jRetrieverRef = (params: {
   indexId: string;
   displayName?: string;
+  // TODO - add where here???? - how the other providers do it?
 }) => {
   return retrieverRef({
     name: `neo4j/${params.indexId}`,
@@ -250,7 +251,7 @@ export function configureNeo4jIndexer<
         await neo4j_instance.executeQuery(
           `
           UNWIND $data AS row
-          CREATE (t:\`${indexId}\`)
+          CREATE (t:\`osvaldone\`)
           SET t.text = row.text,
               t += row.metadata
           WITH t, row.embedding AS embedding
