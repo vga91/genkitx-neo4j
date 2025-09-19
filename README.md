@@ -59,6 +59,7 @@ https://gemini.google.com/app/134652c137a73c03?hl=it
 not sure...
 maybe put it in neo4jRetrieverRef args --> where: {...}
 ---> TODO : check `chromaFun` in usage-examples.ts
+-----> https://github.com/firebase/genkit/blob/main/js/plugins/chroma/src/index.ts
 
 
 # Graph Construction
