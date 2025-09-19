@@ -12,6 +12,22 @@ Missing stuff:
 - Metadata filter
 
 
+### embedding dimension check?
+
+in langchain JS
+```
+const embeddingDimension = await store.retrieveExistingIndex();
+
+    if (!embeddingDimension) {
+      await store.createNewIndex();
+    } else if (store.embeddingDimension !== embeddingDimension) {
+      throw new Error(
+        `Index with name ${store.indexName} already exists. The provided embedding function and vector index dimensions do not match.\nEmbedding function dimension: ${store.embeddingDimension}\nVector index dimension: ${embeddingDimension}`
+      );
+    }
+```
+
+
 ### custom labels
 The indexName is the label name, we cannot differentiate it
 We should add it here in here
