@@ -12,8 +12,6 @@ const ai = genkit({
           // You must specify a Neo4j index ID and the embedding model you want to use.
           indexId: 'bob-facts2',
           embedder: googleAI.embedder('gemini-embedding-001'),
-          // embedder: googleAI.embedder('textembedding-gecko-001'),
-
 
           // Optional: You can also specify the client parameters to connect to your Neo4j instance.
           // If not provided, we can use environment variables or default values.

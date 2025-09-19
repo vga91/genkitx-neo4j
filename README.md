@@ -66,11 +66,26 @@ maybe put it in neo4jRetrieverRef args --> where: {...}
 TODO
 
 
+# Knowledge Graph Construction
+
+TODO
+currently, genkit doesn't seem to provide this funzionality.
+--> MAYBE WITH TOOLS? https://github.com/genkit-ai/genkit-by-example/tree/main/src/app/tool-calling
+
+--> check here: `declare class Genkit implements HasRegistry `
+  which methods are provided
+
+--> forse così? https://genkit.dev/docs/plugin-authoring/evaluators/
+
 # Text2Cypher
 
 TODO
 
 # MCP
+
+https://genkit.dev/docs/mcp-server/
+
+https://genkit.dev/docs/model-context-protocol/
 
 TODO
 
@@ -79,6 +94,8 @@ TODO
 
 ## LLMGraphTransformer
 TODO
+
+llm-graph-transformer.ts
 
 ## Graph Converter 
 TODO
@@ -90,6 +107,9 @@ https://genkit.dev/docs/rag/
 
 ## Chat memory
 TODO
+
+https://genkit.dev/docs/chat/
+
 
 ## Other changes
 
