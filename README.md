@@ -1,37 +1,41 @@
-# MISSING STUFF
-
+# Missing Stuff
 
 ## Retriever
 
-Missing stuff:
-- custom labels
-- distanceType
-- metadata prefix
-- Text property key 
-- Retrieval query
-- Metadata filter
+**Missing stuff:**
 
+  * custom labels
+  * distanceType
+  * metadata prefix
+  * Text property key
+  * Retrieval query
+  * Metadata filter
 
-### embedding dimension check?
+-----
 
-in langchain JS
-```
+### Embedding Dimension Check
+
+In langchain JS:
+
+```javascript
 const embeddingDimension = await store.retrieveExistingIndex();
 
-    if (!embeddingDimension) {
-      await store.createNewIndex();
-    } else if (store.embeddingDimension !== embeddingDimension) {
-      throw new Error(
-        `Index with name ${store.indexName} already exists. The provided embedding function and vector index dimensions do not match.\nEmbedding function dimension: ${store.embeddingDimension}\nVector index dimension: ${embeddingDimension}`
-      );
-    }
+if (!embeddingDimension) {
+  await store.createNewIndex();
+} else if (store.embeddingDimension !== embeddingDimension) {
+  throw new Error(
+    `Index with name ${store.indexName} already exists. The provided embedding function and vector index dimensions do not match.\nEmbedding function dimension: ${store.embeddingDimension}\nVector index dimension: ${embeddingDimension}`
+  );
+}
 ```
 
+-----
 
-### custom labels
-The indexName is the label name, we cannot differentiate it
-We should add it here in here
-```
+### Custom Labels
+
+The `indexName` is the label name, we cannot differentiate it. We should add it in here:
+
+```javascript
 await neo4j_instance.executeQuery(
   `
   UNWIND $data AS row
@@ -42,22 +46,29 @@ await neo4j_instance.executeQuery(
   CALL db.create.setNodeVectorProperty(t, 'embedding', embedding)
   `,
 ```
-and here
-```
-      await neo4j_instance.executeQuery(
-        `
-        CREATE VECTOR INDEX $indexName IF NOT EXISTS
-        FOR (n:\`${indexId}\`) ON n.embedding
-        `,
-        { indexName: indexId },
-        { database: neo4jConfig.database },
-      );
+
+and here:
+
+```javascript
+await neo4j_instance.executeQuery(
+  `
+  CREATE VECTOR INDEX $indexName IF NOT EXISTS
+  FOR (n:\`${indexId}\`) ON n.embedding
+  `,
+  { indexName: indexId },
+  { database: neo4jConfig.database },
+);
 ```
 
-### Retrieval query
-- `https://github.com/neo4j-partners/genkitx-neo4j/issues/4`
-Change
-```
+-----
+
+### Retrieval Query
+
+  * `https://github.com/neo4j-partners/genkitx-neo4j/issues/4`
+
+Change:
+
+```javascript
 const retriever_query = `
   CALL db.index.vector.queryNodes($index, $k, $embedding) YIELD node, score
   RETURN node.text AS text, node {.*, text: Null,
@@ -65,74 +76,91 @@ const retriever_query = `
   `;
 ```
 
+-----
 
-### Metadata filter
-- `https://github.com/neo4j-partners/genkitx-neo4j/issues/3`
-- TODO: see here https://medium.com/neo4j/integrating-neo4j-with-langchain4j-for-graphrag-vector-stores-and-retrievers-de3ef3e08fa8
+### Metadata Filter
 
-TODO - is there a Filter stuff in genkit?
-https://gemini.google.com/app/134652c137a73c03?hl=it
-not sure...
-maybe put it in neo4jRetrieverRef args --> where: {...}
----> TODO : check `chromaFun` in usage-examples.ts
------> https://github.com/firebase/genkit/blob/main/js/plugins/chroma/src/index.ts
+  * `https://github.com/neo4j-partners/genkitx-neo4j/issues/3`
+  * **TODO:** See here: [https://medium.com/neo4j/integrating-neo4j-with-langchain4j-for-graphrag-vector-stores-and-retrievers-de3ef3e08fa8](https://medium.com/neo4j/integrating-neo4j-with-langchain4j-for-graphrag-vector-stores-and-retrievers-de3ef3e08fa8)
 
+**TODO:** Is there a Filter feature in Genkit?
+[https://gemini.google.com/app/134652c137a73c03?hl=en](https://www.google.com/search?q=https://gemini.google.com/app/134652c137a73c03%3Fhl%3Den)
+
+I'm not sure...
+Maybe put it in `neo4jRetrieverRef` args --\> `where: {...}`
+\--\> **TODO:** Check `chromaFun` in `usage-examples.ts`
+\-----\> [https://github.com/firebase/genkit/blob/main/js/plugins/chroma/src/index.ts](https://github.com/firebase/genkit/blob/main/js/plugins/chroma/src/index.ts)
+
+-----
 
 # Graph Construction
 
-TODO
+**TODO**
 
+-----
 
 # Knowledge Graph Construction
 
-TODO
-currently, genkit doesn't seem to provide this funzionality.
---> MAYBE WITH TOOLS? https://github.com/genkit-ai/genkit-by-example/tree/main/src/app/tool-calling
+**TODO**
+Currently, Genkit doesn't seem to provide this functionality.
+\--\> **MAYBE WITH TOOLS?** [https://github.com/genkit-ai/genkit-by-example/tree/main/src/app/tool-calling](https://github.com/genkit-ai/genkit-by-example/tree/main/src/app/tool-calling)
 
---> check here: `declare class Genkit implements HasRegistry `
-  which methods are provided
+\--\> Check here: `declare class Genkit implements HasRegistry`
+Which methods are provided?
 
---> forse così? https://genkit.dev/docs/plugin-authoring/evaluators/
+\--\> Maybe like this? [https://genkit.dev/docs/plugin-authoring/evaluators/](https://genkit.dev/docs/plugin-authoring/evaluators/)
+
+-----
 
 # Text2Cypher
 
-TODO
+**TODO**
+
+-----
 
 # MCP
 
-https://genkit.dev/docs/mcp-server/
+[https://genkit.dev/docs/mcp-server/](https://genkit.dev/docs/mcp-server/)
 
-https://genkit.dev/docs/model-context-protocol/
+[https://genkit.dev/docs/model-context-protocol/](https://genkit.dev/docs/model-context-protocol/)
 
-TODO
+**TODO**
 
-# Parent-child and other retrievers
+-----
 
+# Parent-Child and Other Retrievers
 
 ## LLMGraphTransformer
-TODO
 
-llm-graph-transformer.ts
+**TODO**
+`llm-graph-transformer.ts`
 
-## Graph Converter 
-TODO
+-----
 
-## GraphRAG concepts
-TODO
-https://genkit.dev/docs/rag/
+## Graph Converter
 
+**TODO**
 
-## Chat memory
-TODO
+-----
 
-https://genkit.dev/docs/chat/
+## GraphRAG Concepts
 
+**TODO**
+[https://genkit.dev/docs/rag/](https://genkit.dev/docs/rag/)
 
-## Other changes
+-----
 
-- `https://github.com/neo4j-partners/genkitx-neo4j/issues/7`
+## Chat Memory
 
-- `https://github.com/neo4j-partners/genkitx-neo4j/issues/5`
+**TODO**
+[https://genkit.dev/docs/chat/](https://genkit.dev/docs/chat/)
+
+-----
+
+## Other Changes
+
+  * `https://github.com/neo4j-partners/genkitx-neo4j/issues/7`
+  * `https://github.com/neo4j-partners/genkitx-neo4j/issues/5`
 
 
 ---
