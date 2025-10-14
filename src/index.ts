@@ -67,6 +67,7 @@ If not specified, the default label will be `Neo4j - <indexId>`
 export const neo4jRetrieverRef = (params: {
   indexId: string;
   displayName?: string;
+  retrievalQuery?: string;
 }) => {
   return retrieverRef({
     name: `neo4j/${params.indexId}`,
@@ -88,6 +89,7 @@ If not specified, the default label will be `Neo4j - <indexId>`
 export const neo4jIndexerRef = (params: {
   indexId: string;
   displayName?: string;
+  creationQuery?: string;
 }) => {
   return indexerRef({
     name: `neo4j/${params.indexId}`,
@@ -115,6 +117,8 @@ export function neo4j<EmbedderCustomOptions extends z.ZodTypeAny>(
     indexId: string;
     embedder: EmbedderArgument<EmbedderCustomOptions>;
     embedderOptions?: z.infer<EmbedderCustomOptions>;
+    retrievalQuery?: string;
+    creationQuery?: string;
   }[],
 ): GenkitPlugin {
   return genkitPlugin("neo4j", async (ai: Genkit) => {
@@ -146,9 +150,11 @@ export function configureNeo4jRetriever<
     clientParams?: Neo4jGraphConfig;
     embedder: EmbedderArgument<EmbedderCustomOptions>;
     embedderOptions?: z.infer<EmbedderCustomOptions>;
+    retrievalQuery?: string;
+    creationQuery?: string;
   },
 ) {
-  const { indexId, embedder, embedderOptions } = {
+  const { indexId, embedder, embedderOptions, retrievalQuery } = {
     ...params,
   };
   const neo4jConfig = params.clientParams ?? getDefaultConfig();
@@ -224,6 +230,7 @@ const retrieverQuery = (options: {
   // TODO - customize it
   const retrievalQuery = params?.retrievalQuery ?? `RETURN node.${textNodeProperty} AS text, node {.*, text: Null,
       embedding: Null, id: Null } AS metadata`;
+  console.log('retrievalQuery', retrievalQuery)
 
   if (filter == null) {
     return {query: `
@@ -314,12 +321,14 @@ export function configureNeo4jIndexer<
     clientParams?: Neo4jGraphConfig;
     embedder: EmbedderArgument<EmbedderCustomOptions>;
     embedderOptions?: z.infer<EmbedderCustomOptions>;
+    creationQuery?: string;
   },
 ) {
   const { indexId, embedder, embedderOptions } = {
     ...params,
   };
   const neo4jConfig = params.clientParams ?? getDefaultConfig();
+  console.log('opening..')
   const neo4j_instance = neo4j_driver.driver(
     neo4jConfig.url, // URL (protocol://host:port)
     neo4j_driver.auth.basic(neo4jConfig.username, neo4jConfig.password), // Authentication
@@ -353,15 +362,18 @@ export function configureNeo4jIndexer<
           embedding: batchEmbeddings[j][0]["embedding"],
         }));
 
-        await neo4j_instance.executeQuery(
-          `
+        const creationQuery = params?.creationQuery ?? `
           UNWIND $data AS row
           CREATE (t:\`${indexId}\`)
           SET t.text = row.text,
               t += row.metadata
           WITH t, row.embedding AS embedding
           CALL db.create.setNodeVectorProperty(t, 'embedding', embedding)
-          `,
+          `;
+
+        console.log('creationQuery', creationQuery)
+
+        await neo4j_instance.executeQuery(creationQuery,
           { data: batchParams },
           { database: neo4jConfig.database },
         );
@@ -375,6 +387,8 @@ export function configureNeo4jIndexer<
         { indexName: indexId },
         { database: neo4jConfig.database },
       );
+
+      console.log('closing..')
       neo4j_instance.close();
     },
   );

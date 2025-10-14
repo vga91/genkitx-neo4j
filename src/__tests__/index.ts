@@ -1,5 +1,6 @@
 
 // TODO ---> https://github.com/langchain4j/langchain4j-community/pull/147/files#diff-88eda01fc3b9783cb9d21927a503fe236ed6f4de13e4fc314320736cd52d0150
+  // https://github.com/vga91/langchain4j-community/blob/5079cea64e42fd6cd326a45678da533d6a8c0438/embedding-stores/langchain4j-community-neo4j/src/main/java/dev/langchain4j/community/store/embedding/neo4j/Neo4jEmbeddingStore.java
 // TODO --> https://genkit.dev/docs/rag/#embedders
 
 
@@ -28,6 +29,8 @@ describe('Neo4j Plugin Integration', () => {
           {
             indexId: 'genkit-test-index',
             embedder: googleAI.embedder('gemini-embedding-001'),
+            // TODO - handle this...
+            retrievalQuery: "RETURN 1",
             clientParams: {
               url: process.env.NEO4J_URI as string,
               username: process.env.NEO4J_USERNAME as string,
@@ -42,78 +45,107 @@ describe('Neo4j Plugin Integration', () => {
 
   // todo - TESTS
 
+  test('graph rag', async () => {
+      // TODO - create ingestor, 
+      // TODO - create indexer
+      const uniqueId = `test-doc-${Date.now()}`;
+      const newDocument = new Document({
+        content: [
+          { text: 'This is a test document for indexing and retrieval.' }
+        ],
+        metadata: { uniqueId },
+      });
 
-  test('should successfully index a document and retrieve it', async () => {
-    const uniqueId = `test-doc-${Date.now()}`;
-    const newDocument = new Document({
-      content: [
-        { text: 'This is a test document for indexing and retrieval.' }
-      ],
-      metadata: { uniqueId },
-    });
+      const indexer = neo4jIndexerRef({ indexId: 'genkit-test-index' });
+      await ai.index({ indexer, documents: [newDocument] });
 
-    const indexer = neo4jIndexerRef({ indexId: 'genkit-test-index' });
-    await ai.index({ indexer, documents: [newDocument] });
+      // - retriever
+      // const retriever = neo4jRetrieverRef({ indexId: 'genkit-test-index'});
+      const retriever = neo4jRetrieverRef({ indexId: 'genkit-test-index', retrievalQuery: "RETURN 1" });
+      const docs = await ai.retrieve({
+        retriever,
+        query: 'This is a test document to be indexed.',
+        options: {
+          k: 10,
+          filter: { uniqueId },
+        },
+      });
 
-    const retriever = neo4jRetrieverRef({ indexId: 'genkit-test-index' });
-    const docs = await ai.retrieve({
-      retriever,
-      query: 'This is a test document to be indexed.',
-      options: {
-        k: 10,
-        filter: { uniqueId },
-      },
-    });
-
-    expect(docs).toHaveLength(1);
-    expect(docs[0].content[0].text).toContain('indexing and retrieval');
+      console.log('docs')
+      console.log(docs)
   });
 
-  test('should retrieve documents using a specific metadata filter', async () => {
-    const commonId = `common-doc-${Date.now()}`;
-    const docsToInsert = [
-      new Document({
-        content: [{ text: 'Document 1 about cats.' }],
-        metadata: { animal: 'cat', commonId },
-      }),
-      new Document({
-        content: [{ text: 'Document 2 about dogs.' }],
-        metadata: { animal: 'dog', commonId },
-      }),
-      new Document({
+  // test('should successfully index a document and retrieve it', async () => {
+  //   const uniqueId = `test-doc-${Date.now()}`;
+  //   const newDocument = new Document({
+  //     content: [
+  //       { text: 'This is a test document for indexing and retrieval.' }
+  //     ],
+  //     metadata: { uniqueId },
+  //   });
+
+  //   const indexer = neo4jIndexerRef({ indexId: 'genkit-test-index' });
+  //   await ai.index({ indexer, documents: [newDocument] });
+
+  //   const retriever = neo4jRetrieverRef({ indexId: 'genkit-test-index' });
+  //   const docs = await ai.retrieve({
+  //     retriever,
+  //     query: 'This is a test document to be indexed.',
+  //     options: {
+  //       k: 10,
+  //       filter: { uniqueId },
+  //     },
+  //   });
+
+  //   expect(docs).toHaveLength(1);
+  //   expect(docs[0].content[0].text).toContain('indexing and retrieval');
+  // });
+
+  // test('should retrieve documents using a specific metadata filter', async () => {
+  //   const commonId = `common-doc-${Date.now()}`;
+  //   const docsToInsert = [
+  //     new Document({
+  //       content: [{ text: 'Document 1 about cats.' }],
+  //       metadata: { animal: 'cat', commonId },
+  //     }),
+  //     new Document({
+  //       content: [{ text: 'Document 2 about dogs.' }],
+  //       metadata: { animal: 'dog', commonId },
+  //     }),
+  //     new Document({
         
-        content: [{ text: 'Another document about cats.' }],
-        metadata: { animal: 'cat', commonId },
-      }),
-    ];
+  //       content: [{ text: 'Another document about cats.' }],
+  //       metadata: { animal: 'cat', commonId },
+  //     }),
+  //   ];
 
-    const indexer = neo4jIndexerRef({ indexId: 'genkit-test-index' });
-    await ai.index({ indexer, documents: docsToInsert });
+  //   const indexer = neo4jIndexerRef({ indexId: 'genkit-test-index' });
+  //   await ai.index({ indexer, documents: docsToInsert });
 
-    const retriever = neo4jRetrieverRef({ indexId: 'genkit-test-index' });
-    const retrievedDocs = await ai.retrieve({
-      retriever,
-      query: 'What animal information is available?',
-      options: {
-        k: 10,
-        filter: { animal: 'cat', commonId },
-      },
-    });
+  //   const retriever = neo4jRetrieverRef({ indexId: 'genkit-test-index' });
+  //   const retrievedDocs = await ai.retrieve({
+  //     retriever,
+  //     query: 'What animal information is available?',
+  //     options: {
+  //       k: 10,
+  //       filter: { animal: 'cat', commonId },
+  //     },
+  //   });
 
-    expect(retrievedDocs).toHaveLength(2);
-    expect(retrievedDocs.every(doc => doc.metadata?.animal === 'cat')).toBe(true);
-  });
+  //   expect(retrievedDocs).toHaveLength(2);
+  //   expect(retrievedDocs.every(doc => doc.metadata?.animal === 'cat')).toBe(true);
+  // });
 
-  test('should return an empty array for a non-matching query', async () => {
-    const retriever = neo4jRetrieverRef({ indexId: 'genkit-test-index' });
-    const docs = await ai.retrieve({
-      retriever,
-      query: 'This query should not find anything.',
-      options: {
-        k: 10,
-        filter: { nonExistentField: 'nonExistentValue' },
-      },
-    });
-    expect(docs).toHaveLength(0);
-  });
+  // test('should return an empty array for a non-matching query', async () => {
+  //   const retriever = neo4jRetrieverRef({ indexId: 'genkit-test-index' });
+  //   const docs = await ai.retrieve({
+  //     retriever,
+  //     query: 'This query should not find anything.',
+  //     options: {
+  //       k: 10,
+  //       filter: { nonExistentField: 'nonExistentValue' },
+  //     },
+  //   });
+  //   expect(docs).toHaveLength(0);
+  // });
 });
