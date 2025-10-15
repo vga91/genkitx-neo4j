@@ -27,10 +27,11 @@ describe('Neo4j Plugin Integration', () => {
         googleAI(),
         neo4j([
           {
+            // retriever: 
             indexId: 'genkit-test-index',
             embedder: googleAI.embedder('gemini-embedding-001'),
             // TODO - handle this...
-            retrievalQuery: "RETURN 1",
+            // retrievalQuery: "RETURN 1",
             clientParams: {
               url: process.env.NEO4J_URI as string,
               username: process.env.NEO4J_USERNAME as string,
