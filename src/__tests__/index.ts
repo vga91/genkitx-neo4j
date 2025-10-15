@@ -7,7 +7,7 @@
 import { googleAI } from '@genkit-ai/googleai';
 import { Document, genkit } from 'genkit';
 import { test, describe, expect } from '@jest/globals';
-import neo4j, { neo4jIndexerRef, neo4jRetrieverRef } from '..';
+import neo4j, { Neo4jGraphConfig, neo4jIndexerRef, neo4jRetrieverRef } from '..';
 import { HypotheticalQuestionRetriever, ParentChildRetriever } from '../rag-utils';
 
 // Mock llm-chunk for testing Parent-Child ingestor
@@ -24,7 +24,7 @@ jest.mock('llm-chunk', () => ({
 
 describe("Neo4j RAG Retrievers", () => {
   const requiredVars = ["NEO4J_URI", "NEO4J_USERNAME", "NEO4J_PASSWORD", "GEMINI_API_KEY"];
-  const missingVars = requiredVars.filter(env => !process.env[env]);
+  const missingVars = requiredVars.filter((env) => !process.env[env]);
   const canRunTest = missingVars.length === 0;
 
   if (!canRunTest) {
@@ -35,18 +35,18 @@ describe("Neo4j RAG Retrievers", () => {
   let ai: ReturnType<typeof genkit>;
   let indexer: ReturnType<typeof neo4jIndexerRef>;
   const indexId = "genkit-test-index";
-  const clientParams = {
+  const clientParams: Neo4jGraphConfig = {
     url: process.env.NEO4J_URI!,
     username: process.env.NEO4J_USERNAME!,
     password: process.env.NEO4J_PASSWORD!,
     database: "neo4j",
   };
-  const driver = neo4j_driver.driver(clientParams.url, neo4j_driver.auth.basic(clientParams.username, clientParams.password));
 
   beforeAll(() => {
     ai = genkit({
       plugins: [
         googleAI(),
+        // Neo4j plugin registers indexer internally
         neo4j([
           {
             indexId,
@@ -54,7 +54,6 @@ describe("Neo4j RAG Retrievers", () => {
             clientParams,
           },
         ]),
-        neo4jRetrieverPlugin(driver, indexId),
       ],
     });
 
@@ -65,7 +64,8 @@ describe("Neo4j RAG Retrievers", () => {
     const retriever = new ParentChildRetriever(ai, clientParams, indexer);
 
     const uniqueId = `pc-doc-${Date.now()}`;
-    const docText = "This is a test document for parent-child ingestion in Neo4j. It should be chunked and subchunked properly.";
+    const docText =
+      "This is a test document for parent-child ingestion in Neo4j. It should be chunked and subchunked properly.";
 
     await retriever.ingestDocument({ documents: [{ text: docText, metadata: { uniqueId } }] });
 
@@ -75,7 +75,10 @@ describe("Neo4j RAG Retrievers", () => {
 
     expect(records.length).toBeGreaterThan(0);
 
-    const foundText = records.map(r => r.get("subChunks")?.map((s: any) => s.text).join(" ")).join(" ");
+    const foundText = records
+      .flatMap((r) => r.get("subChunks") || [])
+      .map((s: any) => s.properties.text)
+      .join(" ");
     expect(foundText).toContain("test document for parent-child");
 
     await session.close();
@@ -95,7 +98,7 @@ describe("Neo4j RAG Retrievers", () => {
 
     expect(records.length).toBeGreaterThan(0);
 
-    const foundText = records.map(r => r.get("d")?.properties?.text).join(" ");
+    const foundText = records.map((r) => r.get("d").properties.text).join(" ");
     expect(foundText).toContain("hypothetical question retriever");
 
     await session.close();
@@ -109,7 +112,7 @@ describe("Neo4j RAG Retrievers", () => {
 
     await retriever.ingestDocument({ documents: [{ text: docText, metadata: { uniqueId } }] });
 
-    const retrieverRef = neo4jIndexerRef({ indexId });
+    const retrieverRef = neo4jRetrieverRef({ indexId });
     const results = await ai.retrieve({
       retriever: retrieverRef,
       query: "indexed in Genkit",
@@ -120,6 +123,7 @@ describe("Neo4j RAG Retrievers", () => {
     expect(results[0].content[0].text).toContain("indexed in Genkit");
   });
 });
+
 
 
 
