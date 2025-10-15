@@ -44,7 +44,6 @@ describe('Neo4j Plugin Integration', () => {
   });
 
   // todo - TESTS
-
   test('graph rag', async () => {
       // TODO - create ingestor, 
       // TODO - create indexer
@@ -73,6 +72,32 @@ describe('Neo4j Plugin Integration', () => {
 
       console.log('docs')
       console.log(docs)
+  });
+  
+  test('should document and retrieve it with custom label', async () => {
+    const uniqueId = `test-doc-${Date.now()}`;
+    const newDocument = new Document({
+      content: [
+        { text: 'This is a test document for indexing and retrieval.' }
+      ],
+      metadata: { uniqueId },
+    });
+
+    const indexer = neo4jIndexerRef({ indexId: 'genkit-test-index' , a: '1'});
+    await ai.index({ indexer, documents: [newDocument] });
+
+    const retriever = neo4jRetrieverRef({ indexId: 'genkit-test-index' });
+    const docs = await ai.retrieve({
+      retriever,
+      query: 'This is a test document to be indexed.',
+      options: {
+        k: 10,
+        filter: { uniqueId },
+      },
+    });
+
+    expect(docs).toHaveLength(1);
+    expect(docs[0].content[0].text).toContain('indexing and retrieval');
   });
 
   // test('should successfully index a document and retrieve it', async () => {
